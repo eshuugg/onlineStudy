@@ -14,6 +14,7 @@ import {
 import Header from '../../components/Header/Header';
 ;
 import {useDispatch} from 'react-redux';
+import { purchaseStudyMaterialDetails } from '../../redux/Slicers/StudyMaterialSlicer';
 // import {freeLiveClassDetails} from '../../redux/Slicer/ClassSlicer';
 // import {
 //   freeStudyMaterialDetails,
@@ -24,38 +25,38 @@ const {width, height} = Dimensions.get('window');
 
 const PurchaseStudyMaterial = () => {
   const [demoClass, setdemoClass] = useState([]);
-  const demoClasses = [
-    {
-      id: '1',
-      title: 'Video-1',
-      thumbnail: require('../../asset/education.png'),
-    },
-    {
-      id: '2',
-      title: 'Video-2',
-      thumbnail: require('../../asset/education.png'),
-    },
-    {
-      id: '3',
-      title: 'Video-3',
-      thumbnail: require('../../asset/education.png'),
-    },
-    {
-      id: '4',
-      title: 'Video-4',
-      thumbnail: require('../../asset/education.png'),
-    },
-    {
-      id: '5',
-      title: 'Video-5',
-      thumbnail: require('../../asset/education.png'),
-    },
-    {
-      id: '6',
-      title: 'Video-6',
-      thumbnail: require('../../asset/education.png'),
-    },
-  ];
+  // const demoClasses = [
+  //   {
+  //     id: '1',
+  //     title: 'Video-1',
+  //     thumbnail: require('../../asset/education.png'),
+  //   },
+  //   {
+  //     id: '2',
+  //     title: 'Video-2',
+  //     thumbnail: require('../../asset/education.png'),
+  //   },
+  //   {
+  //     id: '3',
+  //     title: 'Video-3',
+  //     thumbnail: require('../../asset/education.png'),
+  //   },
+  //   {
+  //     id: '4',
+  //     title: 'Video-4',
+  //     thumbnail: require('../../asset/education.png'),
+  //   },
+  //   {
+  //     id: '5',
+  //     title: 'Video-5',
+  //     thumbnail: require('../../asset/education.png'),
+  //   },
+  //   {
+  //     id: '6',
+  //     title: 'Video-6',
+  //     thumbnail: require('../../asset/education.png'),
+  //   },
+  // ];
 
   const dispatch = useDispatch();
 
@@ -69,28 +70,34 @@ const PurchaseStudyMaterial = () => {
   }, []);
 
   // Render function for demo class items
-  const renderDemoClass = ({item}) => (
-    <TouchableOpacity
-      style={styles.demoClassItem}
-      onPress={() => {
-        const url = item?.ClassLink;
-        if (!url) return;
-        Linking.openURL(url).catch(err =>
-          console.error('Failed to open URL:', err),
-        );
-      }}>
-      <Image
-        source={require('../../asset/education.png')}
-        style={styles.demoThumbnail}
-      />
-      <Text style={styles.demoTitle}>{item.CourseName}</Text>
-    </TouchableOpacity>
-  );
+  const renderDemoClass = ({ item }) => (
+      <TouchableOpacity
+        style={styles.demoClassItem}
+        onPress={() => {
+          const url = item?.Material;
+  
+          if (!url) return;
+  
+          // Make sure the URL is absolute
+          const pdfUrl = url.startsWith('http')
+            ? url
+            : `https://demo.careercarrier.org${url}`; // 🔁 Replace with your actual domain
+  
+          // Navigate to PdfViewer screen and pass the URL
+          navigation.navigate('PdfViewer', { pdfUrl });
+        }}>
+        <Image
+          source={require('../../asset/material.png')}
+          style={styles.demoThumbnail}
+        />
+        <Text style={styles.demoTitle}>{item.CourseName}</Text>
+      </TouchableOpacity>
+    );
 
 
   return (
     <View style={{flex: 1}}>
-      {/* <Header title={'Free Live Class '} /> */}
+      <Header/>
       <ScrollView style={styles.container}>
         {/* Top Banner */}
         {/* <Image
@@ -119,7 +126,7 @@ const PurchaseStudyMaterial = () => {
         </View> */}
 
         {/* Demo Classes */}
-        <Text style={styles.sectionTitle}>Purchase Material</Text>
+        <Text style={styles.sectionTitle}>Premium Learning Zone/ Material</Text>
         <FlatList
           data={demoClass}
           renderItem={renderDemoClass}

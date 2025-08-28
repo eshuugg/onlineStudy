@@ -65,6 +65,7 @@ const FreeLiveClass = () => {
 
   return (
     <View style={{ flex: 1 }}>
+      <Header />
       <ScrollView style={styles.container}>
         <Text style={styles.sectionTitle}>Free Learning Zone/ Classes</Text>
         <FlatList

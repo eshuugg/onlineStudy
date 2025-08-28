@@ -82,7 +82,7 @@ export const purchaseVideoDetails = () => async dispatch => {
   //   console.log('userDetails', userDetails);
   try {
     dispatch(purchaseVideoLoading());
-    const {data} = await axiosInstance.get(`Course/GetCourseDetailsIsFree/2`);
+    const {data} = await axiosInstance.get(`Course/GetVideoIsPurchase`);
     console.log('data', data);
     if (data) {
       dispatch(purchaseVideoSuccess(data));

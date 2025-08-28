@@ -173,11 +173,19 @@ export default function OtherCourseDetailsScreen(props) {
                 handlePayment();
               }
             }}
+            disabled={courseDetails?.IsPurchase}
           >
-            <Text style={styles.buyButtonText}>
-              {courseDetails?.IsFree ? 'Free' : 'Buy Now'}
-            </Text>
+            {courseDetails?.IsPurchase ? (
+              <Text style={styles.buyButtonText}>
+                {'Purchased - ' + courseDetails?.DayLeft + ' days left'}
+              </Text>
+            ) : courseDetails?.IsFree ? (
+              <Text style={styles.buyButtonText}>Free</Text>
+            ) : (
+              <Text style={styles.buyButtonText}>Buy Now</Text>
+            )}
           </TouchableOpacity>
+
         </View>
 
         {/* Demo Classes */}

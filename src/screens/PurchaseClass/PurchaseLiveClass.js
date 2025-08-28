@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,20 +9,25 @@ import {
   ScrollView,
   Dimensions,
   Linking,
+  Modal,
 } from 'react-native';
 import Header from '../../components/Header/Header';
 ;
-import {useDispatch} from 'react-redux';
+import { useDispatch } from 'react-redux';
 // import {
 //   freeLiveClassDetails,
 //   purchaseLiveClassDetails,
 // } from '../../redux/Slicer/ClassSlicer';
 import { useNavigation } from '@react-navigation/native';
+import { purchaseLiveClassDetails } from '../../redux/Slicers/ClassSlicer';
+import WebView from 'react-native-webview';
 
-const {width, height} = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const PurchaseLiveClass = () => {
   const [demoClass, setdemoClass] = useState([]);
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
   const demoClasses = [
     {
       id: '1',
@@ -69,27 +74,25 @@ const PurchaseLiveClass = () => {
   }, []);
 
   // Render function for demo class items
-  const renderDemoClass = ({item}) => (
+  const extractVideoId = (url) => {
+    // Extract video ID from various YouTube URL formats
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
+  const renderDemoClass = ({ item }) => (
     <TouchableOpacity
       style={styles.demoClassItem}
       onPress={() => {
-        const url = item?.Material;
-
-        if (!url) return;
-
-        if (item.Type === 2) {
-          // Open YouTube in WebView inside app
-          navigation.navigate('YouTubePlayer', {videoUrl: url});
-        } else if (item.Type === 1) {
-          const pdfUrl = url.startsWith('http')
-            ? url
-            : `https://your-domain.com${url}`; // Replace with your domain
-
-          navigation.navigate('PdfViewer', {pdfUrl});
+        const videoId = extractVideoId(item?.ClassLink);
+        if (videoId) {
+          setSelectedVideo(videoId);
+          setModalVisible(true);
         }
       }}>
       <Image
-        source={require('../../asset/education.png')}
+        source={require('../../asset/online.png')}
         style={styles.demoThumbnail}
       />
       <Text style={styles.demoTitle}>{item.CourseName}</Text>
@@ -99,8 +102,8 @@ const PurchaseLiveClass = () => {
   console.log('demoClass', demoClass);
 
   return (
-    <View style={{flex: 1}}>
-      {/* <Header title={'Free Live Class '} /> */}
+    <View style={{ flex: 1 }}>
+      <Header />
       <ScrollView style={styles.container}>
         {/* Top Banner */}
         {/* <Image
@@ -129,7 +132,7 @@ const PurchaseLiveClass = () => {
         </View> */}
 
         {/* Demo Classes */}
-        <Text style={styles.sectionTitle}>Purchase Classes</Text>
+        <Text style={styles.sectionTitle}>Premium Learning Zone/ Classes</Text>
         <FlatList
           data={demoClass}
           renderItem={renderDemoClass}
@@ -147,6 +150,33 @@ const PurchaseLiveClass = () => {
           </Text>
         </View> */}
       </ScrollView>
+      <Modal
+        visible={modalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <TouchableOpacity 
+            style={styles.closeButton}
+            onPress={() => setModalVisible(false)}
+          >
+            <Text style={styles.closeButtonText}>X</Text>
+          </TouchableOpacity>
+          
+          {selectedVideo && (
+            <WebView
+              style={styles.webView}
+              javaScriptEnabled={true}
+              domStorageEnabled={true}
+              source={{
+                uri: `https://www.youtube.com/embed/${selectedVideo}?autoplay=1&controls=0&showinfo=0&modestbranding=1`,
+              }}
+              allowsFullscreenVideo={false}
+            />
+          )}
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -241,5 +271,31 @@ const styles = StyleSheet.create({
   placeholderText: {
     fontSize: width * 0.04, // 4% of screen width
     color: '#888',
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    justifyContent: 'center',
+  },
+  webView: {
+    width: width,
+    height: height * 0.3,
+    alignSelf: 'center',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    backgroundColor: 'white',
+    borderRadius: 15,
+    width: 30,
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  closeButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });

@@ -44,9 +44,9 @@ export default function App() {
               <Stack.Screen name="FreeStudyMaterial" component={FreeStudyMaterial} />
               <Stack.Screen name="ForgetPassword" component={ForgotPasswordScreen} />
               <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
-              {/* <Stack.Screen name="PurchaseLiveClass" component={PurchaseLiveClass} />
+              <Stack.Screen name="PurchaseLiveClass" component={PurchaseLiveClass} />
               <Stack.Screen name="PurchaseVideoScreen" component={PurchaseVideoScreen} />
-              <Stack.Screen name="PurchaseStudyMaterial" component={PurchaseStudyMaterial} /> */}
+              <Stack.Screen name="PurchaseStudyMaterial" component={PurchaseStudyMaterial} />
               
               <Stack.Screen name="Register" component={RegisterScreen} />
               <Stack.Screen name="PdfViewer" component={PdfViewer} />

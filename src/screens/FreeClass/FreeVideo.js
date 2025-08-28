@@ -159,6 +159,7 @@ const styles = StyleSheet.create({
     fontSize: width * 0.055,
     fontWeight: 'bold',
     marginHorizontal: width * 0.06,
+    marginVertical: height * 0.02,
     marginBottom: height * 0.02,
     color: '#333',
   },

@@ -13,45 +13,45 @@ import Header from '../../components/Header/Header';
 // import Header from '../../components/Header/Header';
 ;
 
-const {width, height} = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 export default function CourseDetailsScreen() {
   // Sample data for demo classes
-  const demoClasses = [
-    {
-      id: '1',
-      title: 'Video-1',
-      thumbnail: require('../../asset/education.png'),
-    },
-    {
-      id: '2',
-      title: 'Video-2',
-      thumbnail: require('../../asset/education.png'),
-    },
-    {
-      id: '3',
-      title: 'Video-3',
-      thumbnail: require('../../asset/education.png'),
-    },
-    {
-      id: '4',
-      title: 'Video-4',
-      thumbnail: require('../../asset/education.png'),
-    },
-    {
-      id: '5',
-      title: 'Video-5',
-      thumbnail: require('../../asset/education.png'),
-    },
-    {
-      id: '6',
-      title: 'Video-6',
-      thumbnail: require('../../asset/education.png'),
-    },
-  ];
+  // const demoClasses = [
+  //   {
+  //     id: '1',
+  //     title: 'Video-1',
+  //     thumbnail: require('../../asset/education.png'),
+  //   },
+  //   {
+  //     id: '2',
+  //     title: 'Video-2',
+  //     thumbnail: require('../../asset/education.png'),
+  //   },
+  //   {
+  //     id: '3',
+  //     title: 'Video-3',
+  //     thumbnail: require('../../asset/education.png'),
+  //   },
+  //   {
+  //     id: '4',
+  //     title: 'Video-4',
+  //     thumbnail: require('../../asset/education.png'),
+  //   },
+  //   {
+  //     id: '5',
+  //     title: 'Video-5',
+  //     thumbnail: require('../../asset/education.png'),
+  //   },
+  //   {
+  //     id: '6',
+  //     title: 'Video-6',
+  //     thumbnail: require('../../asset/education.png'),
+  //   },
+  // ];
 
   // Render function for demo class items
-  const renderDemoClass = ({item}) => (
+  const renderDemoClass = ({ item }) => (
     <View style={styles.demoClassItem}>
       <Image source={item.thumbnail} style={styles.demoThumbnail} />
       <Text style={styles.demoTitle}>{item.title}</Text>
@@ -59,7 +59,7 @@ export default function CourseDetailsScreen() {
   );
 
   return (
-    <View style={{flex: 1}}>
+    <View style={{ flex: 1 }}>
       <Header />
       <ScrollView style={styles.container}>
         {/* Top Banner */}

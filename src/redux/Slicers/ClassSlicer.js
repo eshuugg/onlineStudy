@@ -80,7 +80,7 @@ export const freeLiveClassDetails = () => async dispatch => {
 export const purchaseLiveClassDetails = () => async dispatch => {
   try {
     dispatch(purchaseLiveClassLoading());
-    const { data } = await axiosInstance.get(`/Course/GetStudyMaterialIsFree`);
+    const { data } = await axiosInstance.get(`/Course/GetGetLiveClassIsPurchase`);
     console.log('data', data);
     if (data) {
       dispatch(purchaseLiveClassSuccess(data));

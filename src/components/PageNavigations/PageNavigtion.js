@@ -31,6 +31,9 @@ import Dashboard from '../../screens/Dashboard/Dashboard';
 import FreeLiveClass from '../../screens/FreeClass/FreeLiveClass';
 import FreeVideoClass from '../../screens/FreeClass/FreeVideo';
 import FreeStudyMaterial from '../../screens/FreeClass/FreeStudyMaterial';
+import PurchaseLiveClass from '../../screens/PurchaseClass/PurchaseLiveClass';
+import PurchaseVideoScreen from '../../screens/PurchaseClass/PurchaseVideo';
+import PurchaseStudyMaterial from '../../screens/PurchaseClass/PurchaseStudyMaterial';
 
 const Drawer = createDrawerNavigator();
 
@@ -56,8 +59,10 @@ export const PageNavigation = () => {
       />
       <Drawer.Screen name="FreeVideoClass" component={FreeVideoClass} options={{ unmountOnBlur: true }}
       />
-      <Drawer.Screen name="FreeStudyMaterial" component={FreeStudyMaterial} options={{ unmountOnBlur: true }}
-      />
+      <Drawer.Screen name="FreeStudyMaterial" component={FreeStudyMaterial} options={{ unmountOnBlur: true }}/>
+      <Drawer.Screen name="PurchaseLiveClass" component={PurchaseLiveClass} options={{ unmountOnBlur: true }}/>
+      <Drawer.Screen name="PurchaseVideoScreen" component={PurchaseVideoScreen} options={{ unmountOnBlur: true }}/>
+      <Drawer.Screen name="PurchaseStudyMaterial" component={PurchaseStudyMaterial} options={{ unmountOnBlur: true }}/>
     </Drawer.Navigator>
   );
 };
@@ -177,7 +182,7 @@ const Nav = ({ navigation }) => {
         <UI.Div style={pageNavigationStyle.menuSection}>
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() => navigation.navigate('Dashboard')}>
+            onPress={() => navigation.navigate('PurchaseLiveClass')}>
             <UI.Div style={pageNavigationStyle.menuItem}>
               <MaterialIcons
                 name="airplay"
@@ -194,7 +199,7 @@ const Nav = ({ navigation }) => {
         <UI.Div style={pageNavigationStyle.menuSection}>
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() => navigation.navigate('Dashboard')}>
+            onPress={() => navigation.navigate('PurchaseVideoScreen')}>
             <UI.Div style={pageNavigationStyle.menuItem}>
               <MaterialIcons
                 name="smart-display"
@@ -211,7 +216,7 @@ const Nav = ({ navigation }) => {
         <UI.Div style={pageNavigationStyle.menuSection}>
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() => navigation.navigate('Dashboard')}>
+            onPress={() => navigation.navigate('PurchaseStudyMaterial')}>
             <UI.Div style={pageNavigationStyle.menuItem}>
               <AntDesign
                 name="book"

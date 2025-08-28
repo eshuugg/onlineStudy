@@ -98,7 +98,7 @@ const FreeStudyMaterial = () => {
 
   return (
     <View style={{ flex: 1 }}>
-      {/* <Header title={'Free Live Class '} /> */}
+      <Header/>
       <ScrollView style={styles.container}>
         {/* Top Banner */}
         {/* <Image
