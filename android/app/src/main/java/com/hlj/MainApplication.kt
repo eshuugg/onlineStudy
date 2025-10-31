@@ -1,4 +1,4 @@
-package com.careercarrier
+package com.careerrcarrier
 
 import android.app.Application
 import com.facebook.react.PackageList

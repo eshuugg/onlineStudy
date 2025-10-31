@@ -1,4 +1,4 @@
-package com.careercarrier
+package com.careerrcarrier
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
