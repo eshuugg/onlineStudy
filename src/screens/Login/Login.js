@@ -11,6 +11,7 @@ import {
   Alert,
   ActivityIndicator,
   ImageBackground,
+  Linking,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useDispatch } from 'react-redux';
@@ -218,6 +219,11 @@ const LoginScreen = props => {
                 activeOpacity={0.7}
                 onPress={() => navigation.navigate('ForgetPassword')}>
                 <Text style={styles.linkText}>Forgot Password?</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => Linking.openURL('https://app.careercarrier.org/Home/TermsConditions')}>
+                <Text style={styles.linkText}>Terms and Condition</Text>
               </TouchableOpacity>
             </View>
           </View>

@@ -82,7 +82,7 @@ const FreeStudyMaterial = () => {
         // Make sure the URL is absolute
         const pdfUrl = url.startsWith('http')
           ? url
-          : `https://demo.careercarrier.org${url}`; // 🔁 Replace with your actual domain
+          : `https://app.careercarrier.org${url}`; // 🔁 Replace with your actual domain
 
         // Navigate to PdfViewer screen and pass the URL
         navigation.navigate('PdfViewer', { pdfUrl });

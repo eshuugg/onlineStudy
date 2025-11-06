@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,14 +10,11 @@ import {
   Dimensions,
   Linking,
   Modal,
+  RefreshControl,
+  ActivityIndicator
 } from 'react-native';
 import Header from '../../components/Header/Header';
-;
 import { useDispatch } from 'react-redux';
-// import {
-//   freeLiveClassDetails,
-//   purchaseLiveClassDetails,
-// } from '../../redux/Slicer/ClassSlicer';
 import { useNavigation } from '@react-navigation/native';
 import { purchaseLiveClassDetails } from '../../redux/Slicers/ClassSlicer';
 import WebView from 'react-native-webview';
@@ -25,63 +22,46 @@ import WebView from 'react-native-webview';
 const { width, height } = Dimensions.get('window');
 
 const PurchaseLiveClass = () => {
-  const [demoClass, setdemoClass] = useState([]);
+  const [demoClass, setDemoClass] = useState([]);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const demoClasses = [
-    {
-      id: '1',
-      title: 'Video-1',
-      thumbnail: require('../../asset/education.png'),
-    },
-    {
-      id: '2',
-      title: 'Video-2',
-      thumbnail: require('../../asset/education.png'),
-    },
-    {
-      id: '3',
-      title: 'Video-3',
-      thumbnail: require('../../asset/education.png'),
-    },
-    {
-      id: '4',
-      title: 'Video-4',
-      thumbnail: require('../../asset/education.png'),
-    },
-    {
-      id: '5',
-      title: 'Video-5',
-      thumbnail: require('../../asset/education.png'),
-    },
-    {
-      id: '6',
-      title: 'Video-6',
-      thumbnail: require('../../asset/education.png'),
-    },
-  ];
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const dispatch = useDispatch();
-  const navigation = useNavigation()
+  const navigation = useNavigation();
+
+  const fetchLiveClassData = useCallback(async () => {
+    try {
+      setRefreshing(true);
+      const response = await dispatch(purchaseLiveClassDetails());
+      console.log('Live class details fetched successfully:', response);
+      if (response?.IsSuccess) {
+        setDemoClass(response?.body || []);
+      }
+    } catch (error) {
+      console.error('Error fetching live class data:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [dispatch]);
 
   useEffect(() => {
-    dispatch(purchaseLiveClassDetails()).then(response => {
-      console.log('Free class details fetched successfully:', response);
-      if (response?.IsSuccess) {
-        setdemoClass(response?.body);
-      }
-    });
-  }, []);
+    fetchLiveClassData();
+  }, [fetchLiveClassData]);
 
-  // Render function for demo class items
+  const onRefresh = useCallback(() => {
+    fetchLiveClassData();
+  }, [fetchLiveClassData]);
+
   const extractVideoId = (url) => {
-    // Extract video ID from various YouTube URL formats
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-    const match = url.match(regExp);
+    const match = url?.match(regExp);
     return (match && match[2].length === 11) ? match[2] : null;
   };
 
-  const renderDemoClass = ({ item }) => (
+  const renderDemoClass = ({ item, index }) => (
     <TouchableOpacity
       style={styles.demoClassItem}
       onPress={() => {
@@ -95,61 +75,74 @@ const PurchaseLiveClass = () => {
         source={require('../../asset/online.png')}
         style={styles.demoThumbnail}
       />
-      <Text style={styles.demoTitle}>{item.CourseName}</Text>
+      <View style={styles.playIconContainer}>
+        <Text style={styles.playIcon}>▶</Text>
+      </View>
+      <Text style={styles.demoTitle} numberOfLines={2}>
+        {item.CourseName || `Class ${index + 1}`}
+      </Text>
     </TouchableOpacity>
   );
 
-  console.log('demoClass', demoClass);
+  if (loading) {
+    return (
+      <View style={{ flex: 1 }}>
+        <Header />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#1a2942" />
+          <Text style={styles.loadingText}>Loading classes...</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1 }}>
       <Header />
-      <ScrollView style={styles.container}>
-        {/* Top Banner */}
-        {/* <Image
-          source={require('../../asset/indianpolice.jpg')}
-          style={styles.bannerImage}
-        /> */}
-
-        {/* Course Details */}
-        {/* <View style={styles.detailsContainer}>
-          <Text style={styles.courseTitle}>WBP Constable</Text>
-          <Text style={styles.courseDescription}>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur
-            bibendum consequat ipsum, ac ultrices leo hendrerit vel. Class
-            aptent taciti sociosqu ad litora torquent per conubia nostra, per
-            inceptos himenaeos.
-          </Text>
-
-          <View style={styles.courseInfo}>
-            <Text style={styles.courseFees}>Fees: ₹15000</Text>
-            <Text style={styles.courseDuration}>Duration: 3 Months</Text>
-          </View>
-
-          <TouchableOpacity style={styles.buyButton}>
-            <Text style={styles.buyButtonText}>Buy Now</Text>
-          </TouchableOpacity>
-        </View> */}
-
+      <ScrollView 
+        style={styles.container}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#1a2942']}
+            tintColor={'#1a2942'}
+          />
+        }
+      >
         {/* Demo Classes */}
         <Text style={styles.sectionTitle}>Premium Learning Zone/ Classes</Text>
-        <FlatList
-          data={demoClass}
-          renderItem={renderDemoClass}
-          keyExtractor={item => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.demoList}
-        />
-
-        {/* Successful Students */}
-        {/* <Text style={styles.sectionTitle}>Successful Students</Text>
-        <View style={styles.successfulStudentsContainer}>
-          <Text style={styles.placeholderText}>
-            Content for Successful Students
-          </Text>
-        </View> */}
+        
+        {demoClass.length > 0 ? (
+          <FlatList
+            data={demoClass}
+            renderItem={renderDemoClass}
+            keyExtractor={(item, index) => item.id ? item.id.toString() : `class-${index}`}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.demoList}
+          />
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Image
+              source={require('../../asset/online.png')}
+              style={styles.emptyImage}
+            />
+            <Text style={styles.emptyText}>No classes available</Text>
+            <TouchableOpacity 
+              style={styles.refreshButton}
+              onPress={onRefresh}
+              disabled={refreshing}
+            >
+              <Text style={styles.refreshButtonText}>
+                {refreshing ? 'Refreshing...' : 'Tap to refresh'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
+
+      {/* Video Player Modal */}
       <Modal
         visible={modalVisible}
         transparent={true}
@@ -161,7 +154,7 @@ const PurchaseLiveClass = () => {
             style={styles.closeButton}
             onPress={() => setModalVisible(false)}
           >
-            <Text style={styles.closeButtonText}>X</Text>
+            <Text style={styles.closeButtonText}>✕</Text>
           </TouchableOpacity>
           
           {selectedVideo && (
@@ -170,9 +163,9 @@ const PurchaseLiveClass = () => {
               javaScriptEnabled={true}
               domStorageEnabled={true}
               source={{
-                uri: `https://www.youtube.com/embed/${selectedVideo}?autoplay=1&controls=0&showinfo=0&modestbranding=1`,
+                uri: `https://www.youtube.com/embed/${selectedVideo}?autoplay=1&controls=1&showinfo=0&modestbranding=1`,
               }}
-              allowsFullscreenVideo={false}
+              allowsFullscreenVideo={true}
             />
           )}
         </View>

@@ -34,6 +34,9 @@ import FreeStudyMaterial from '../../screens/FreeClass/FreeStudyMaterial';
 import PurchaseLiveClass from '../../screens/PurchaseClass/PurchaseLiveClass';
 import PurchaseVideoScreen from '../../screens/PurchaseClass/PurchaseVideo';
 import PurchaseStudyMaterial from '../../screens/PurchaseClass/PurchaseStudyMaterial';
+import MyOrders from '../../screens/MyOrders/MyOrders';
+import MyCourses from '../../screens/MyCourses/MyCourses';
+import OtherCourseDetailsScreen from '../../screens/OtherCourseDetails/OtherCourse';
 
 const Drawer = createDrawerNavigator();
 
@@ -60,9 +63,13 @@ export const PageNavigation = () => {
       <Drawer.Screen name="FreeVideoClass" component={FreeVideoClass} options={{ unmountOnBlur: true }}
       />
       <Drawer.Screen name="FreeStudyMaterial" component={FreeStudyMaterial} options={{ unmountOnBlur: true }}/>
+      <Drawer.Screen name="MyCourses" component={MyCourses} options={{ unmountOnBlur: true }}/>
       <Drawer.Screen name="PurchaseLiveClass" component={PurchaseLiveClass} options={{ unmountOnBlur: true }}/>
       <Drawer.Screen name="PurchaseVideoScreen" component={PurchaseVideoScreen} options={{ unmountOnBlur: true }}/>
       <Drawer.Screen name="PurchaseStudyMaterial" component={PurchaseStudyMaterial} options={{ unmountOnBlur: true }}/>
+      <Drawer.Screen name="MyOrders" component={MyOrders} options={{ unmountOnBlur: true }}/>
+      <Drawer.Screen name="OtherCourseDetails" component={OtherCourseDetailsScreen} options={{ unmountOnBlur: true }}/>
+      
     </Drawer.Navigator>
   );
 };
@@ -233,7 +240,7 @@ const Nav = ({ navigation }) => {
         <UI.Div style={pageNavigationStyle.menuSection}>
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() => navigation.navigate('Dashboard')}>
+            onPress={() => navigation.navigate('MyOrders')}>
             <UI.Div style={pageNavigationStyle.menuItem}>
               <AntDesign
                 name="book"

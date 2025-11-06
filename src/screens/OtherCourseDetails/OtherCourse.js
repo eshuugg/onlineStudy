@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Dimensions,
   Modal,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import Header from '../../components/Header/Header';
 import { useDispatch } from 'react-redux';
@@ -26,22 +27,40 @@ export default function OtherCourseDetailsScreen(props) {
   const [courseDetails, setcourseDetails] = useState();
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const toast = useToast();
+  const { dta } = props?.route?.params
+
+  console.log('props', dta);
+
+
+  const fetchCourseDetails = async () => {
+    try {
+      setRefreshing(true);
+      const response = await dispatch(courseData(dta?.ID));
+      if (response?.IsSuccess) setcourseDetails(response?.body);
+    } catch (error) {
+      console.error("Error fetching course details:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
 
   useEffect(() => {
     const unsubscribe = props.navigation.addListener('focus', () => {
-      dispatch(courseData(otherData?.dta?.ID)).then(response => {
-        console.log('Free video details fetched successfully:', response);
-        if (response?.IsSuccess) {
-          setcourseDetails(response?.body);
-        }
-      });
+      fetchCourseDetails();
     });
     return unsubscribe;
-  }, []);
+  }, [dta?.ID]); // 👈 re-run when a new course ID is passed
+
+
+  const onRefresh = useCallback(() => {
+    fetchCourseDetails();
+  }, [fetchCourseDetails]);
 
   const extractVideoId = (url) => {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -61,14 +80,14 @@ export default function OtherCourseDetailsScreen(props) {
           description: 'Course Purchase',
           image: 'https://your-logo-url.com/logo.png', // Optional: replace with your logo
           currency: 'INR',
-          key: 'rzp_test_ZtSmYjvoCGkrqR', // TEST key
+          key: 'rzp_live_RMIGXUkPS6DD1w', // Live key
           amount: courseDetails.Fees * 100, // Razorpay amount in paise
           name: courseDetails?.Name || "Course Payment",
           courseID: response?.body?.Razorpay?.ID || "12345",
           prefill: {
-            email: 'test@example.com', // Replace with logged-in user's email
-            contact: '9999999999',     // Replace with logged-in user's phone
-            name: 'Test User',
+            email: 'careercarrierprl@gmail.com', // Replace with logged-in user's email
+            contact: '9002118919',     // Replace with logged-in user's phone
+            name: 'Career Carrier',
             // courseId: response?.body?.Razorpay?.ID || "12345", // Course ID for backend verification
           },
           theme: { color: '#53a20e' }
@@ -91,6 +110,7 @@ export default function OtherCourseDetailsScreen(props) {
                       duration: 3000,
                       animationType: 'slide-in',
                     });
+                    fetchCourseDetails(); // Refresh course details after payment
                   } else {
                     toast.show("Payment verification failed. Please try again.", {
                       type: 'danger',
@@ -99,17 +119,13 @@ export default function OtherCourseDetailsScreen(props) {
                       duration: 3000,
                       animationType: 'slide-in',
                     });
-                    // Alert.alert("Error", "Payment verification failed. Please try again.");
                   }
-                  // Alert.alert("Payment Successful", `Payment ID: ${data.razorpay_payment_id}`);
                 })
                 .catch(error => {
                   console.error('Payment verification failed:', error);
                   Alert.alert("Error", "Payment verification failed. Please try again.");
                 });
             }
-            // Alert.alert("Payment Successful", `Payment ID: ${data.razorpay_payment_id}`);
-            // TODO: Call backend to verify and unlock course
           })
           .catch((error) => {
             console.log(`Error: ${error.code} | ${error.description}`);
@@ -141,13 +157,25 @@ export default function OtherCourseDetailsScreen(props) {
     </TouchableOpacity>
   );
 
+  console.log('courseDetails', courseDetails)
+
   return (
     <View style={{ flex: 1 }}>
       <Header />
-      <ScrollView style={styles.container}>
+      <ScrollView
+        style={styles.container}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#1a2942']} // Customize the loading indicator color
+            tintColor={'#1a2942'} // iOS only
+          />
+        }
+      >
         {/* Top Banner */}
         <Image
-          source={{ uri: `https://demo.careercarrier.org/${courseDetails?.Images}` }}
+          source={{ uri: `https://app.careercarrier.org${courseDetails?.Images}` }}
           style={styles.bannerImage}
         />
 
@@ -176,9 +204,11 @@ export default function OtherCourseDetailsScreen(props) {
             disabled={courseDetails?.IsPurchase}
           >
             {courseDetails?.IsPurchase ? (
-              <Text style={styles.buyButtonText}>
-                {'Purchased - ' + courseDetails?.DayLeft + ' days left'}
-              </Text>
+              <TouchableOpacity onPress={() => navigation.navigate('MyCourses', { courseDetails: courseDetails })}>
+                <Text style={styles.buyButtonText}>
+                  {'Purchased - ' + courseDetails?.DayLeft + ' days left'}
+                </Text>
+              </TouchableOpacity>
             ) : courseDetails?.IsFree ? (
               <Text style={styles.buyButtonText}>Free</Text>
             ) : (
@@ -231,7 +261,6 @@ export default function OtherCourseDetailsScreen(props) {
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {

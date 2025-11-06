@@ -82,8 +82,8 @@ android {
         applicationId "com.careerrcarrier"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 6
-        versionName "1.0.3"
+        versionCode 8
+        versionName "1.0.5"
         missingDimensionStrategy 'react-native-camera', 'general' 
     }
     signingConfigs {

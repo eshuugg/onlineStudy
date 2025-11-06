@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,13 +7,12 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  RefreshControl,
+  ActivityIndicator
 } from 'react-native';
 import Header from '../../components/Header/Header';
-;
-
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
-// import {otherCourseDetails, otherCourseDta} from '../../redux/Slicer/OtherCoursesSlicer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { otherCourseDta } from '../../redux/Slicers/OtherCoursesSlicer';
 
@@ -56,32 +55,67 @@ const purchaseClassOptions = [
 ];
 
 const Dashboard = () => {
-  const [otherDetails, setotherDetails] = useState();
-  const [userDta, setUserDta] = useState();
-
-  console.log('otherDetails', otherDetails);
+  const [otherDetails, setOtherDetails] = useState([]);
+  const [userDta, setUserDta] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const dispatch = useDispatch();
   const navigation = useNavigation();
 
-  useEffect(() => {
-    dispatch(otherCourseDta()).then(response => {
+  const fetchData = useCallback(async () => {
+    try {
+      setRefreshing(true);
+
+      // Fetch course data
+      const response = await dispatch(otherCourseDta());
       console.log('Free video details fetched successfully:', response);
       if (response?.IsSuccess) {
-        setotherDetails(response?.body);
+        setOtherDetails(response?.body || []);
       }
-    });
 
-    const userData = async () => {
+      // Fetch user data
       const value = await AsyncStorage.getItem('userDta');
-      setUserDta(JSON.parse(value));
-    };
+      if (value) {
+        setUserDta(JSON.parse(value));
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setRefreshing(false);
+      setLoading(false);
+    }
+  }, [dispatch]);
 
-    userData();
-  }, []);
+  useEffect(() => {
+    fetchData(); // run immediately when component mounts
+
+    const interval = setInterval(() => {
+      fetchData(); // run every 15 seconds
+    }, 15000); // 15000 ms = 15 seconds
+
+    // Cleanup to prevent memory leaks
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
+
+  const onRefresh = useCallback(() => {
+    fetchData();
+  }, [fetchData]);
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Header title={'Career Carrier'} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#1a2942" />
+          <Text style={styles.loadingText}>Loading dashboard...</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
-
     <View style={styles.container}>
       <Header title={'Career Carrier'} />
 
@@ -92,13 +126,25 @@ const Dashboard = () => {
           style={styles.avatar}
         />
         <View>
-          <Text style={styles.userName}>Hi, {userDta?.FirstName}</Text>
+          <Text style={styles.userName}>Hi, {userDta?.FirstName || 'User'}</Text>
           <Text style={styles.userRole}>WBP Constable</Text>
         </View>
       </View>
 
-      {/* Banner Section */}
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+      {/* Main Content with Pull-to-Refresh */}
+      <ScrollView
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#1a2942']}
+            tintColor={'#1a2942'}
+          />
+        }
+      >
+        {/* Banner Section */}
         <View style={styles.banner}>
           <Image
             source={require('../../asset/banner.jpg')}
@@ -106,10 +152,6 @@ const Dashboard = () => {
           />
         </View>
 
-        {/* Options Section */}
-        {/* <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: height * 0.02 }}> */}
         {/* Free Class Section */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Free Learning Zone</Text>
@@ -141,37 +183,46 @@ const Dashboard = () => {
             ))}
           </View>
         </View>
-        {/* </ScrollView> */}
 
-        {/* Bottom Section */}
+        {/* Bottom Section - Explore More Courses */}
         <Text style={styles.otherCourseTitle}>Explore More Courses</Text>
-        <ScrollView
-          horizontal
-          style={styles.bottomScroll}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.bottomScrollContent}>
-          {otherDetails?.map((course, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.bottomCard}
-              onPress={() =>
-                navigation.navigate('OtherCourseDetails', { dta: course })
-              }>
-              <Image
-                source={{ uri: `https://demo.careercarrier.org${course?.Images}` }}
-                style={styles.bottomCardImage}
-              />
-              <Text style={styles.bottomCardText}>{course?.Name}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        {otherDetails.length > 0 ? (
+          <ScrollView
+            horizontal
+            style={styles.bottomScroll}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.bottomScrollContent}
+          >
+            {otherDetails.map((course, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.bottomCard}
+                onPress={() =>
+                  navigation.navigate('OtherCourseDetails', { dta: course })
+                }
+              >
+                <Image
+                  source={{ uri: `https://app.careercarrier.org${course?.Images}` }}
+                  style={styles.bottomCardImage}
+                />
+                <Text style={styles.bottomCardText} numberOfLines={2}>
+                  {course?.Name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No courses available</Text>
+          </View>
+        )}
       </ScrollView>
     </View>
-
   );
 };
 
 export default Dashboard;
+
 
 const styles = StyleSheet.create({
   container: {
@@ -296,16 +347,16 @@ const styles = StyleSheet.create({
     width: width * 0.35,
     height: height * 0.15,
     borderRadius: width * 0.02,
-    padding: width * 0.03,
+    padding: width * 0.01,
     justifyContent: 'center',
   },
   bottomCardImage: {
-    width: width * 0.15,
-    height: width * 0.15,
+    width: width * 0.30,
+    height: width * 0.20,
     resizeMode: 'contain',
   },
   bottomCardText: {
-    marginTop: height * 0.01,
+    marginTop: height * 0.001,
     fontSize: width * 0.035,
     color: '#fff',
     textAlign: 'center',

@@ -116,6 +116,7 @@ export const otherCourseDta = () => async dispatch => {
 };
 
 export const courseData = id => async dispatch => {
+  console.log('id', id)
   try {
     dispatch(courseDataLoading());
     const { data } = await axiosInstance.get(`Course/GetCourseDetails/${id}`);

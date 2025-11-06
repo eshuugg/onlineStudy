@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {
   View,
   Text,
@@ -10,145 +10,143 @@ import {
   Dimensions,
   Linking,
   Platform,
+  RefreshControl,
+  ActivityIndicator
 } from 'react-native';
 import Header from '../../components/Header/Header';
-;
 import {useDispatch} from 'react-redux';
 import { purchaseStudyMaterialDetails } from '../../redux/Slicers/StudyMaterialSlicer';
-// import {freeLiveClassDetails} from '../../redux/Slicer/ClassSlicer';
-// import {
-//   freeStudyMaterialDetails,
-//   purchaseStudyMaterialDetails,
-// } from '../../redux/Slicer/StudyMaterialSlicer';
+import { useNavigation } from '@react-navigation/native';
 
 const {width, height} = Dimensions.get('window');
 
 const PurchaseStudyMaterial = () => {
-  const [demoClass, setdemoClass] = useState([]);
-  // const demoClasses = [
-  //   {
-  //     id: '1',
-  //     title: 'Video-1',
-  //     thumbnail: require('../../asset/education.png'),
-  //   },
-  //   {
-  //     id: '2',
-  //     title: 'Video-2',
-  //     thumbnail: require('../../asset/education.png'),
-  //   },
-  //   {
-  //     id: '3',
-  //     title: 'Video-3',
-  //     thumbnail: require('../../asset/education.png'),
-  //   },
-  //   {
-  //     id: '4',
-  //     title: 'Video-4',
-  //     thumbnail: require('../../asset/education.png'),
-  //   },
-  //   {
-  //     id: '5',
-  //     title: 'Video-5',
-  //     thumbnail: require('../../asset/education.png'),
-  //   },
-  //   {
-  //     id: '6',
-  //     title: 'Video-6',
-  //     thumbnail: require('../../asset/education.png'),
-  //   },
-  // ];
-
+  const [studyMaterial, setStudyMaterial] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  
   const dispatch = useDispatch();
+  const navigation = useNavigation();
+
+  const fetchStudyMaterial = useCallback(async () => {
+    try {
+      setRefreshing(true);
+      const response = await dispatch(purchaseStudyMaterialDetails());
+      console.log('Study material details fetched successfully:', response);
+      if (response?.IsSuccess) {
+        setStudyMaterial(response?.body || []);
+      }
+    } catch (error) {
+      console.error('Error fetching study material:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [dispatch]);
 
   useEffect(() => {
-    dispatch(purchaseStudyMaterialDetails()).then(response => {
-      console.log('Free class details fetched successfully:', response);
-      if (response?.IsSuccess) {
-        setdemoClass(response?.body);
-      }
-    });
-  }, []);
+    fetchStudyMaterial();
+  }, [fetchStudyMaterial]);
 
-  // Render function for demo class items
-  const renderDemoClass = ({ item }) => (
-      <TouchableOpacity
-        style={styles.demoClassItem}
-        onPress={() => {
-          const url = item?.Material;
-  
-          if (!url) return;
-  
-          // Make sure the URL is absolute
-          const pdfUrl = url.startsWith('http')
-            ? url
-            : `https://demo.careercarrier.org${url}`; // 🔁 Replace with your actual domain
-  
-          // Navigate to PdfViewer screen and pass the URL
-          navigation.navigate('PdfViewer', { pdfUrl });
-        }}>
+  const onRefresh = useCallback(() => {
+    fetchStudyMaterial();
+  }, [fetchStudyMaterial]);
+
+  // Render function for study material items
+  const renderStudyMaterial = ({ item, index }) => (
+    <TouchableOpacity
+      style={styles.demoClassItem}
+      onPress={() => {
+        const url = item?.Material;
+
+        if (!url) return;
+
+        // Make sure the URL is absolute
+        const pdfUrl = url.startsWith('http')
+          ? url
+          : `https://app.careercarrier.org${url}`;
+
+        // Navigate to PdfViewer screen and pass the URL
+        navigation.navigate('PdfViewer', { pdfUrl });
+      }}>
+      <View style={styles.thumbnailContainer}>
         <Image
           source={require('../../asset/material.png')}
           style={styles.demoThumbnail}
         />
-        <Text style={styles.demoTitle}>{item.CourseName}</Text>
-      </TouchableOpacity>
-    );
+        <View style={styles.pdfIconContainer}>
+          <Text style={styles.pdfIcon}>📄</Text>
+        </View>
+      </View>
+      <Text style={styles.demoTitle} numberOfLines={2}>
+        {item.CourseName || `Material ${index + 1}`}
+      </Text>
+    </TouchableOpacity>
+  );
 
+  if (loading) {
+    return (
+      <View style={{flex: 1}}>
+        <Header/>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#1a2942" />
+          <Text style={styles.loadingText}>Loading study materials...</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={{flex: 1}}>
       <Header/>
-      <ScrollView style={styles.container}>
-        {/* Top Banner */}
-        {/* <Image
-          source={require('../../asset/indianpolice.jpg')}
-          style={styles.bannerImage}
-        /> */}
-
-        {/* Course Details */}
-        {/* <View style={styles.detailsContainer}>
-          <Text style={styles.courseTitle}>WBP Constable</Text>
-          <Text style={styles.courseDescription}>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur
-            bibendum consequat ipsum, ac ultrices leo hendrerit vel. Class
-            aptent taciti sociosqu ad litora torquent per conubia nostra, per
-            inceptos himenaeos.
-          </Text>
-
-          <View style={styles.courseInfo}>
-            <Text style={styles.courseFees}>Fees: ₹15000</Text>
-            <Text style={styles.courseDuration}>Duration: 3 Months</Text>
-          </View>
-
-          <TouchableOpacity style={styles.buyButton}>
-            <Text style={styles.buyButtonText}>Buy Now</Text>
-          </TouchableOpacity>
-        </View> */}
-
-        {/* Demo Classes */}
+      <ScrollView 
+        style={styles.container}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#1a2942']}
+            tintColor={'#1a2942'}
+          />
+        }
+      >
+        {/* Study Materials */}
         <Text style={styles.sectionTitle}>Premium Learning Zone/ Material</Text>
-        <FlatList
-          data={demoClass}
-          renderItem={renderDemoClass}
-          keyExtractor={item => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.demoList}
-        />
-
-        {/* Successful Students */}
-        {/* <Text style={styles.sectionTitle}>Successful Students</Text>
-        <View style={styles.successfulStudentsContainer}>
-          <Text style={styles.placeholderText}>
-            Content for Successful Students
-          </Text>
-        </View> */}
+        
+        {studyMaterial.length > 0 ? (
+          <FlatList
+            data={studyMaterial}
+            renderItem={renderStudyMaterial}
+            keyExtractor={(item, index) => item.id ? item.id.toString() : `material-${index}`}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.demoList}
+          />
+        ) : (
+          <View style={styles.emptyContainer}>
+            {/* <Image
+              source={require('../../asset/material.png')}
+              style={styles.emptyImage}
+            /> */}
+            <Text style={styles.emptyText}>No study materials available</Text>
+            {/* <TouchableOpacity 
+              style={styles.refreshButton}
+              onPress={onRefresh}
+              disabled={refreshing}
+            >
+              <Text style={styles.refreshButtonText}>
+                {refreshing ? 'Refreshing...' : 'Tap to refresh'}
+              </Text>
+            </TouchableOpacity> */}
+          </View>
+        )}
       </ScrollView>
     </View>
   );
 };
 
 export default PurchaseStudyMaterial;
+
 
 const styles = StyleSheet.create({
   container: {
@@ -238,5 +236,16 @@ const styles = StyleSheet.create({
   placeholderText: {
     fontSize: width * 0.04, // 4% of screen width
     color: '#888',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: width * 0.05,
+    height: height * 0.3,
+  },
+  emptyText: {
+    fontSize: width * 0.04,
+    color: '#888',
+    marginTop: height * 0.02,
   },
 });

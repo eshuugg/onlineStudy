@@ -24,6 +24,8 @@ import PurchaseVideoScreen from './src/screens/PurchaseClass/PurchaseVideo.js';
 import PurchaseStudyMaterial from './src/screens/PurchaseClass/PurchaseStudyMaterial.js';
 import ForgotPasswordScreen from './src/screens/ForgetPassword/ForgetPassword.js';
 import ResetPasswordScreen from './src/screens/ForgetPassword/ResetPassword.js';
+import MyOrders from './src/screens/MyOrders/MyOrders.js';
+import MyCourses from './src/screens/MyCourses/MyCourses.js';
 
 export default function App() {
   const Stack = createStackNavigator();
@@ -32,7 +34,7 @@ export default function App() {
     <Provider store={store}>
       <ToastProvider>
         <NavigationContainer ref={navigationRef}>
-          <SafeAreaView style={{flex: 1}}>
+          <SafeAreaView style={{flex: 1,backgroundColor:'#1a2942'}}>
             <Stack.Navigator
               initialRouteName="SplashScreen"
               screenOptions={{headerShown: false}}>
@@ -47,6 +49,8 @@ export default function App() {
               <Stack.Screen name="PurchaseLiveClass" component={PurchaseLiveClass} />
               <Stack.Screen name="PurchaseVideoScreen" component={PurchaseVideoScreen} />
               <Stack.Screen name="PurchaseStudyMaterial" component={PurchaseStudyMaterial} />
+              <Stack.Screen name="MyOrders" component={MyOrders} />
+              <Stack.Screen name="MyCourses" component={MyCourses} />
               
               <Stack.Screen name="Register" component={RegisterScreen} />
               <Stack.Screen name="PdfViewer" component={PdfViewer} />

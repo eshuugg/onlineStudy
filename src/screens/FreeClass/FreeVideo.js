@@ -13,7 +13,8 @@ import Header from '../../components/Header/Header';
 import { useDispatch } from 'react-redux';
 import { freeVideoDetails } from '../../redux/Slicers/VideoSlicer';
 import { useNavigation } from '@react-navigation/native';
-import WebView from 'react-native-webview';
+// import WebView from 'react-native-webview';
+import YoutubePlayer from "react-native-youtube-iframe";
 
 const { width, height } = Dimensions.get('window');
 
@@ -47,7 +48,7 @@ export default function FreeVideoClass() {
   const renderVideoItem = ({ item }) => {
     const handlePress = () => {
       const url = item?.Material;
-      
+
       if (!url) return;
 
       if (item.Type === 2) {
@@ -105,7 +106,7 @@ export default function FreeVideoClass() {
         showsVerticalScrollIndicator={false}
         numColumns={3}
         columnWrapperStyle={styles.row}
-        // ListFooterComponent={<View style={{ height: height * 0.05 }} />
+      // ListFooterComponent={<View style={{ height: height * 0.05 }} />
       />
 
       {/* Video Player Modal */}
@@ -116,22 +117,31 @@ export default function FreeVideoClass() {
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.closeButton}
             onPress={() => setModalVisible(false)}
           >
             <Text style={styles.closeButtonText}>X</Text>
           </TouchableOpacity>
-          
+
           {selectedVideo && (
-            <WebView
-              style={styles.webView}
-              javaScriptEnabled={true}
-              domStorageEnabled={true}
-              source={{
-                uri: `https://www.youtube.com/embed/${selectedVideo}?autoplay=1&controls=0&showinfo=0&modestbranding=1`,
+            <YoutubePlayer
+              height={300}
+              play={true}
+              videoId={selectedVideo}
+              webViewStyle={{ opacity: 0.99 }}
+              initialPlayerParams={{
+                controls: true,         // show basic play/pause controls
+                modestbranding: true,   // hides big YouTube logo
+                rel: false,             // hides "related videos" at end
+                showinfo: false,        // hides video title (deprecated but still helps)
+                fs: true,               // allows fullscreen toggle
+                loop: false,            // disable looping
+                autoplay: true,         // starts automatically
+                iv_load_policy: 3,      // hides annotations / cards
+                playsinline: true,      // prevents fullscreen by default
               }}
-              allowsFullscreenVideo={false}
+              onError={(e) => console.log("YouTube Error", e)}
             />
           )}
         </View>

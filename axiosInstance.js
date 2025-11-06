@@ -1,9 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import {navigationRef} from './src/components/PageNavigations/PageNavigtion';
+import { navigationRef } from './src/components/PageNavigations/PageNavigtion';
 
 const axiosInstance = axios.create({
-  baseURL: 'https://demo.careercarrier.org/api/',
+  baseURL: 'https://app.careercarrier.org/api/',
 });
 
 axiosInstance.interceptors.request.use(async config => {
@@ -24,7 +24,7 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   async error => {
-    console.log('erroewer', error.response.status);
+    console.log('erroewer', error);
     if (error.response.status === 401) {
       await AsyncStorage.removeItem('userDta');
       return navigationRef.navigate('Login');

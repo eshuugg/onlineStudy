@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,84 +8,60 @@ import {
   TouchableOpacity,
   Dimensions,
   Modal,
+  ActivityIndicator,
+  RefreshControl
 } from 'react-native';
 import Header from '../../components/Header/Header';
-;
 import { useDispatch } from 'react-redux';
 import { purchaseVideoDetails } from '../../redux/Slicers/VideoSlicer';
-import WebView from 'react-native-webview';
-// import {purchaseVideoDetails} from '../../redux/Slicers/VideoSlicer';
+// import WebView from 'react-native-webview';
+import YoutubePlayer from "react-native-youtube-iframe";
 
 const { width, height } = Dimensions.get('window');
 
 export default function PurchaseVideoScreen() {
-  const [videoData, setvideoData] = useState();
+  const [videoData, setVideoData] = useState([]);
   const [selectedVideo, setSelectedVideo] = useState(null);
-    const [modalVisible, setModalVisible] = useState(false);
-
-  // Sample data for videos
-  // const videos = [
-  //   {
-  //     id: '1',
-  //     title: 'Video-1',
-  //     description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-  //     thumbnail: require('../../asset/education.png'),
-  //   },
-  //   {
-  //     id: '2',
-  //     title: 'Video-2',
-  //     description: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-  //     thumbnail: require('../../asset/education.png'),
-  //   },
-  //   {
-  //     id: '3',
-  //     title: 'Video-3',
-  //     description: 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
-  //     thumbnail: require('../../asset/education.png'),
-  //   },
-  //   {
-  //     id: '4',
-  //     title: 'Video-4',
-  //     description: 'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-  //     thumbnail: require('../../asset/education.png'),
-  //   },
-  //   {
-  //     id: '5',
-  //     title: 'Video-5',
-  //     description: 'Short description for video 5.',
-  //     thumbnail: require('../../asset/education.png'),
-  //   },
-  //   {
-  //     id: '6',
-  //     title: 'Video-6',
-  //     description: 'Short description for video 6.',
-  //     thumbnail: require('../../asset/education.png'),
-  //   },
-  // ];
+  const [modalVisible, setModalVisible] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    dispatch(purchaseVideoDetails()).then(response => {
-      console.log('Free video details fetched successfully:', response);
+  const fetchVideoData = useCallback(async () => {
+    try {
+      setRefreshing(true);
+      const response = await dispatch(purchaseVideoDetails());
+      console.log('Video details fetched successfully:', response);
       if (response?.IsSuccess) {
-        setvideoData(response?.body);
+        setVideoData(response?.body || []);
       }
-    });
-  }, []);
+    } catch (error) {
+      console.error('Error fetching video data:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [dispatch]);
 
-  // Render function for each video item
+  useEffect(() => {
+    fetchVideoData();
+  }, [fetchVideoData]);
+
+  const onRefresh = useCallback(() => {
+    fetchVideoData();
+  }, [fetchVideoData]);
+
   const extractVideoId = (url) => {
-    // Extract video ID from various YouTube URL formats
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-    const match = url.match(regExp);
+    const match = url?.match(regExp);
     return (match && match[2].length === 11) ? match[2] : null;
   };
 
-const renderVideoItem = ({ item }) => {
+  const renderVideoItem = ({ item, index }) => {
     const handlePress = () => {
       const url = item?.Material;
-      
+
       if (!url) return;
 
       if (item.Type === 2) {
@@ -100,51 +76,91 @@ const renderVideoItem = ({ item }) => {
         const pdfUrl = url.startsWith('http')
           ? url
           : `https://your-domain.com${url}`;
-        navigation.navigate('PdfViewer', { pdfUrl });
+        // navigation.navigate('PdfViewer', { pdfUrl });
       }
     };
 
     return (
       <TouchableOpacity
-        style={styles.demoClassItem}
+        style={styles.videoItem}
         onPress={handlePress}
       >
-        <Image
-          source={require('../../asset/video.png')}
-          style={styles.demoThumbnail}
-        />
-        <Text style={styles.demoTitle}>{item.CourseName}</Text>
+        <View style={styles.thumbnailContainer}>
+          <Image
+            source={require('../../asset/video.png')}
+            style={styles.thumbnail}
+          />
+          {/* <View style={styles.playIconContainer}>
+            <Text style={styles.playIcon}>▶</Text>
+          </View> */}
+        </View>
+        <Text style={styles.videoTitle} numberOfLines={2}>
+          {item.CourseName || `Video ${index + 1}`}
+        </Text>
       </TouchableOpacity>
     );
   };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Header />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#1a2942" />
+          <Text style={styles.loadingText}>Loading videos...</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <Header />
 
-      {/* Banner */}
-      {/* <View style={styles.banner}>
-        <Image
-          source={require('../../asset/video.png')}
-          style={styles.bannerImage}
-        />
-      </View> */}
-
       {/* Title */}
       <Text style={styles.title}>Premium Learning Zone/ Video</Text>
 
       {/* Video List */}
-      <FlatList
-        data={videoData}
-        renderItem={renderVideoItem}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.videoList}
-        showsVerticalScrollIndicator={false}
-        numColumns={3} // Display 3 columns
-        columnWrapperStyle={styles.row} // Style for each row
-        ListFooterComponent={<View style={{ height: height * 0.05 }} />}
-      />
+      {videoData.length > 0 ? (
+        <FlatList
+          data={videoData}
+          renderItem={renderVideoItem}
+          keyExtractor={(item, index) => item.id ? item.id.toString() : `video-${index}`}
+          contentContainerStyle={styles.videoList}
+          showsVerticalScrollIndicator={false}
+          numColumns={3}
+          columnWrapperStyle={styles.row}
+          ListFooterComponent={<View style={{ height: height * 0.05 }} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#1a2942']}
+              tintColor={'#1a2942'}
+            />
+          }
+        />
+      ) : (
+        <View style={styles.emptyContainer}>
+          <Image
+            source={require('../../asset/video.png')}
+            style={styles.emptyImage}
+          />
+          <Text style={styles.emptyText}>No videos available</Text>
+          <TouchableOpacity
+            style={styles.refreshButton}
+            onPress={onRefresh}
+            disabled={refreshing}
+          >
+            <Text style={styles.refreshButtonText}>
+              {refreshing ? 'Refreshing...' : 'Tap to refresh'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Video Player Modal */}
       <Modal
         visible={modalVisible}
         transparent={true}
@@ -152,22 +168,31 @@ const renderVideoItem = ({ item }) => {
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.closeButton}
             onPress={() => setModalVisible(false)}
           >
-            <Text style={styles.closeButtonText}>X</Text>
+            <Text style={styles.closeButtonText}>✕</Text>
           </TouchableOpacity>
-          
+
           {selectedVideo && (
-            <WebView
-              style={styles.webView}
-              javaScriptEnabled={true}
-              domStorageEnabled={true}
-              source={{
-                uri: `https://www.youtube.com/embed/${selectedVideo}?autoplay=1&controls=0&showinfo=0&modestbranding=1`,
+            <YoutubePlayer
+              height={300}
+              play={true}
+              videoId={selectedVideo}
+              webViewStyle={{ opacity: 0.99 }}
+              initialPlayerParams={{
+                controls: true,         // show basic play/pause controls
+                modestbranding: true,   // hides big YouTube logo
+                rel: false,             // hides "related videos" at end
+                showinfo: false,        // hides video title (deprecated but still helps)
+                fs: true,               // allows fullscreen toggle
+                loop: false,            // disable looping
+                autoplay: true,         // starts automatically
+                iv_load_policy: 3,      // hides annotations / cards
+                playsinline: true,      // prevents fullscreen by default
               }}
-              allowsFullscreenVideo={false}
+              onError={(e) => console.log("YouTube Error", e)}
             />
           )}
         </View>
@@ -181,57 +206,57 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  banner: {
-    width: '100%',
-    height: height * 0.22, // 22% of screen height
-    // marginBottom: height * 0.13, // 13% of screen height
-    alignItems: 'center'
-  },
-  bannerImage: {
-    width: '40%',
-    height: '90%',
-    resizeMode: 'cover',
-  },
   title: {
-    fontSize: width * 0.055, // 5.5% of screen width
+    fontSize: width * 0.045,
     fontWeight: 'bold',
-    marginHorizontal: width * 0.06, // 6% of screen width
-    marginVertical: height * 0.02, // 2% of screen height
-    marginBottom: height * 0.02, // 3% of screen height
-    color: '#333',
+    marginHorizontal: width * 0.05,
+    marginVertical: height * 0.02,
+    color: '#1a2942',
   },
   videoList: {
-    paddingHorizontal: width * 0.04, // 4% of screen width
+    paddingHorizontal: width * 0.03,
   },
   row: {
-    justifyContent: 'space-between', // Distribute items evenly
-    marginBottom: height * 0.02, // Spacing between rows
+    justifyContent: 'space-between',
+    marginBottom: height * 0.02,
   },
   videoItem: {
-    width: (width - width * 0.08 - width * 0.04) / 3, // Calculate width for 3 items with padding
-    aspectRatio: 1, // Make item square for better visual
-    marginBottom: height * 0.01, // Spacing between items within a row
-    backgroundColor: '#f8f9fa',
-    borderRadius: width * 0.02,
-    padding: width * 0.02,
-    elevation: 2,
-    alignItems: 'center', // Center content horizontally
+    width: (width - width * 0.1) / 3,
+    alignItems: 'center',
+    marginBottom: height * 0.02,
+  },
+  thumbnailContainer: {
+    position: 'relative',
+    width: '100%',
+    aspectRatio: 1,
+    marginBottom: height * 0.01,
   },
   thumbnail: {
-    width: '100%', // Take full width of videoItem
-    height: '70%', // Adjust height to fit title below
-    borderRadius: width * 0.015,
+    width: '100%',
+    height: '100%',
+    borderRadius: width * 0.03,
     resizeMode: 'cover',
   },
-  videoInfo: {
-    marginTop: height * 0.005, // Small space between thumbnail and title
-    alignItems: 'center', // Center title below thumbnail
+  playIconContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: width * 0.03,
+  },
+  playIcon: {
+    fontSize: width * 0.08,
+    color: 'white',
   },
   videoTitle: {
-    fontSize: width * 0.035, // Adjust font size for smaller space
-    fontWeight: 'bold',
+    fontSize: width * 0.03,
     color: '#333',
     textAlign: 'center',
+    fontWeight: '500',
   },
   modalContainer: {
     flex: 1,
@@ -240,7 +265,7 @@ const styles = StyleSheet.create({
   },
   webView: {
     width: width,
-    height: height * 0.3,
+    height: height * 0.35,
     alignSelf: 'center',
   },
   closeButton: {
@@ -248,27 +273,43 @@ const styles = StyleSheet.create({
     top: 40,
     right: 20,
     backgroundColor: 'white',
-    borderRadius: 15,
-    width: 30,
-    height: 30,
+    borderRadius: 20,
+    width: 40,
+    height: 40,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1,
   },
   closeButtonText: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
+    color: '#333',
   },
-    demoThumbnail: {
-    width: width * 0.3,
-    height: width * 0.3,
-    borderRadius: width * 0.02,
-    marginBottom: height * 0.01,
-    resizeMode: 'contain',
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  demoTitle: {
-    fontSize: width * 0.035,
-    color: '#555',
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#666',
   },
-  // videoDescription styles are no longer needed
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: height * 0.1,
+  },
+  emptyImage: {
+    width: width * 0.5,
+    height: width * 0.5,
+    opacity: 0.5,
+    marginBottom: 20,
+  },
+  emptyText: {
+    fontSize: 18,
+    color: '#999',
+    textAlign: 'center',
+  },
 });
